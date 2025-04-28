@@ -1,56 +1,168 @@
-import streamlit as st
-from openai import OpenAI
+def generate_gemini_insight(df_sample, chart_type, x_col=None, y_col=None):
+    prompt = f"""
+You are an expert SQL generator.
 
-# Show title and description.
-st.title("💬 Chatbot")
-st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
-)
+Given the following table schema:
+Table Name: products
+Columns:
+- Sales (integer)
+- Quarter (text)
+- Vertical (text)
+- Region (text)
+- Profit (integer)
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+Generate a correct SQL query for the user's request.
+Do not explain anything. Just output the SQL query.
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+Data Sample:
+{df_sample.to_csv(index=False)}
+"""
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Gemini LLM failed: {e}"
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+# with right_col:
+#     if "df" in st.session_state:
+#         df = st.session_state.df
+#         numeric_cols = df.select_dtypes(include='number').columns.tolist()
+#         all_cols = df.columns.tolist()
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+#         st.subheader("Create Your Own Chart")
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+#         chart_type = st.selectbox("Choose chart type", [
+#             "Bar", "Column", "Pie", "Histogram",
+#             "Line", "Scatter", "Box",
+#             "Scatter with Regression", "Trendline",
+#             "Correlation Heatmap"
+#         ])
 
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
+#         x_col = y_col = None
+#         fig = None
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+#         # Axis selectors
+#         if chart_type in ["Bar", "Column", "Line", "Scatter", "Box", "Scatter with Regression", "Trendline", "Histogram"]:
+#             x_col = st.selectbox("Select X-axis", all_cols)
+
+#         if chart_type in ["Line", "Scatter", "Box", "Scatter with Regression", "Trendline"]:
+#             y_options = [col for col in numeric_cols if col != x_col]
+#             if y_options:
+#                 y_col = st.selectbox("Select Y-axis", y_options)
+#             else:
+#                 y_col = None
+#                 st.warning("No available numeric column for Y-axis.")
+
+#         if chart_type == "Pie":
+#             x_col = st.selectbox("Select category column for pie chart", all_cols)
+
+#         try:
+#             chart_df = pd.DataFrame()
+#             if chart_type in ["Bar", "Column"] and x_col:
+#                 bar_mode = st.radio("How do you want to build this chart?", ["Auto Count", "Custom X and Y"], horizontal=True)
+
+#                 if bar_mode == "Auto Count":
+#                     value_counts = df[x_col].dropna().value_counts()
+#                     chart_df = pd.DataFrame({x_col: value_counts.index, "Count": value_counts.values})
+#                     fig = px.bar(
+#                         x=chart_df[x_col] if chart_type == "Column" else chart_df["Count"],
+#                         y=chart_df["Count"] if chart_type == "Column" else chart_df[x_col],
+#                         orientation='v' if chart_type == "Column" else 'h',
+#                         labels={"x": x_col, "y": "Count"} if chart_type == "Column" else {"y": x_col, "x": "Count"}
+#                     )
+
+#                 elif bar_mode == "Custom X and Y":
+#                     y_options = [col for col in numeric_cols if col != x_col]
+#                     if y_options:
+#                         y_col = st.selectbox("Select Y-axis (numeric)", y_options)
+#                         agg_method = st.radio("Aggregation method:", ["Sum", "Mean", "Median"], horizontal=True)
+#                         agg_func = {
+#                             "Sum": "sum",
+#                             "Mean": "mean",
+#                             "Median": "median"
+#                         }[agg_method]
+#                         if not (pd.api.types.is_numeric_dtype(df[x_col]) or pd.api.types.is_datetime64_any_dtype(df[x_col])):
+#                             chart_df = df[[x_col, y_col]].dropna().groupby(x_col)[y_col].agg(agg_func).reset_index()
+#                         else:
+#                             chart_df = df[[x_col, y_col]].dropna()
+#                         fig = px.bar(
+#                             chart_df,
+#                             x=x_col if chart_type == "Column" else y_col,
+#                             y=y_col if chart_type == "Column" else x_col,
+#                             orientation='v' if chart_type == "Column" else 'h'
+#                         )
+#                     else:
+#                         st.warning("No valid numeric column available for Y-axis.")
+
+#             elif chart_type == "Histogram" and x_col:
+#                 chart_df = df[[x_col]].dropna()
+#                 fig = px.histogram(chart_df, x=x_col)
+
+#             elif chart_type == "Pie" and x_col:
+#                 pie_vals = df[x_col].dropna().value_counts()
+#                 chart_df = pd.DataFrame({x_col: pie_vals.index, "Count": pie_vals.values})
+#                 fig = px.pie(names=pie_vals.index, values=pie_vals.values)
+
+#             elif chart_type == "Line" and x_col and y_col:
+#                 agg_method = st.radio("Aggregation method:", ["Sum", "Mean", "Median"], horizontal=True)
+#                 agg_func = {
+#                     "Sum": "sum",
+#                     "Mean": "mean",
+#                     "Median": "median"
+#                 }[agg_method]
+#                 if not (pd.api.types.is_numeric_dtype(df[x_col]) or pd.api.types.is_datetime64_any_dtype(df[x_col])):
+#                     chart_df = df[[x_col, y_col]].dropna().groupby(x_col)[y_col].agg(agg_func).reset_index()
+#                 else:
+#                     chart_df = df[[x_col, y_col]].dropna()
+#                 fig = px.line(chart_df, x=x_col, y=y_col, markers=True, text=chart_df[y_col].round(2))
+#                 fig.update_traces(textposition="top center")
+
+#             elif chart_type == "Scatter" and x_col and y_col:
+#                 chart_df = df[[x_col, y_col]].dropna()
+#                 fig = px.scatter(chart_df, x=x_col, y=y_col)
+
+#             elif chart_type == "Box" and x_col and y_col:
+#                 chart_df = df[[x_col, y_col]].dropna()
+#                 fig = px.box(chart_df, x=x_col, y=y_col)
+
+#             elif chart_type == "Scatter with Regression" and x_col and y_col:
+#                 chart_df = df[[x_col, y_col]].dropna()
+#                 fig = px.scatter(chart_df, x=x_col, y=y_col, trendline="ols")
+
+#             elif chart_type == "Trendline" and x_col and y_col:
+#                 chart_df = df[[x_col, y_col]].dropna()
+#                 fig = px.scatter(chart_df, x=x_col, y=y_col, trendline="lowess")
+
+#             elif chart_type == "Correlation Heatmap" and numeric_cols:
+#                 chart_df = df[numeric_cols].corr()
+#                 fig = px.imshow(chart_df, text_auto=True, aspect="auto", color_continuous_scale='RdBu_r')
+
+#             if fig:
+#                 st.plotly_chart(fig, use_container_width=True)
+
+#                 # Show Gemini insight below the chart
+#                 if chart_df is not None and not chart_df.empty:
+#                     with st.spinner("Buzz is analyzing the chart..."):
+#                         insight = generate_gemini_insight(chart_df, chart_type, x_col, y_col)
+#                         insight_part = insight
+#                         recommendation_part = ""
+#                         if "Recommendations:" in insight:
+#                             parts = insight.split("Recommendations:")
+#                             insight_part = parts[0].strip()
+#                             recommendation_part = parts[1].strip()
+#                         st.markdown(f"""
+#                             <div style="background-color:#f1f5ff; padding: 20px; border-radius: 10px;">
+#                                 <h4 style="margin-bottom: 10px;">🤖 <strong>Buzz's Analysis</strong></h4>
+#                                 <p style="font-size: 16px; line-height: 1.6;">
+#                                     <strong>Insights:</strong> {insight_part} <br><br>
+#                                     <strong>Recommendations:</strong> {recommendation_part}
+#                                 </p>
+#                             </div>
+#                         """, unsafe_allow_html=True)
+
+#             elif chart_type not in ["Correlation Heatmap"]:
+#                 st.info("Please select appropriate columns to generate the chart.")
+
+#         except Exception as e:
+#             st.error(f"Error generating chart: {e}")
