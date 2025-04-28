@@ -40,31 +40,31 @@ def detect_datetime_columns(df):
 	
 #Page name and layout
 
-st.set_page_config(page_title="Data Analyzer", layout="wide")
+# st.set_page_config(page_title="Data Analyzer", layout="wide")
 
-logo_url = "https://raw.githubusercontent.com/Stutii-Chauhan/Dashboard/refs/heads/main/pngwing.com%20(1).png"
+# logo_url = "https://raw.githubusercontent.com/Stutii-Chauhan/Dashboard/refs/heads/main/pngwing.com%20(1).png"
 
-logo_html = f"""
-<style>
-#company-logo {{
-    position: absolute;
-    top: 1px;
-    right: 20px;
-    z-index: 9999;
-}}
-#company-logo img {{
-    max-height: 150px;
-    max-width: 200px;
-    border-radius: 5px;
-    object-fit: contain;
-}}
-</style>
-<div id="company-logo">
-    <img src="{logo_url}" alt="Company Logo">
-</div>
-"""
+# logo_html = f"""
+# <style>
+# #company-logo {{
+#     position: absolute;
+#     top: 1px;
+#     right: 20px;
+#     z-index: 9999;
+# }}
+# #company-logo img {{
+#     max-height: 150px;
+#     max-width: 200px;
+#     border-radius: 5px;
+#     object-fit: contain;
+# }}
+# </style>
+# <div id="company-logo">
+#     <img src="{logo_url}" alt="Company Logo">
+# </div>
+# """
 
-st.markdown(logo_html, unsafe_allow_html=True)
+# st.markdown(logo_html, unsafe_allow_html=True)
 
 # Theme Toggle with Switch
 # Toggle stays stable, label doesn't change inside the toggle
