@@ -508,12 +508,10 @@ if "df" in st.session_state:
                         st.warning("Could not match the column for your question.")
                 else:
                     #st.info("Couldn't match to a known operation. Let me ask OpenAI.")
-                    with st.spinner("Analysing..."):
+                    with st.spinner("Generating SQL Query.."):
                         try:
-                            sample = df.to_csv(index=False)
-                            prompt = f"""The user asked: '{user_question}'\n\nHere is a sample of the dataset:\n{sample}\n\nPlease provide a helpful and relevant answer based on this data."""
-                            answer = query_gemini(prompt)
-                            st.success(answer)
+                            sql_query = generate_gemini_sql(user_question)
+                            st.code(sql_query, language = 'sql')
                         except Exception as e:
                             st.error(f"Something went wrong with Gemini: {e}")
 
