@@ -405,6 +405,7 @@ if "df" in st.session_state:
     if user_question:
         q = user_question.lower()
 
+        # Handle only missing value questions manually
         if "missing" in q:
             if "which column" in q and ("most" in q or "maximum" in q):
                 missing_per_column = df.isna().sum()
@@ -420,12 +421,15 @@ if "df" in st.session_state:
                 st.success(f"Total missing values in the dataset: {total_missing}")
                 st.stop()
 
-                    with st.spinner("Generating SQL Query.."):
-                        try:
-                            sql_query = generate_gemini_sql(user_question)
-                            st.code(sql_query, language = 'sql')
-                        except Exception as e:
-                            st.error(f"Something went wrong with Gemini: {e}")
+        else:
+            # 🚀 All other questions → Only generate and show SQL
+            with st.spinner("Generating SQL Query..."):
+                try:
+                    sql_query = generate_gemini_sql(user_question)
+                    st.code(sql_query, language='sql')
+                except Exception as e:
+                    st.error(f"Something went wrong with Gemini: {e}")
+
 
 
 # with right_col:
