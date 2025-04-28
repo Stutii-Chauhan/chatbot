@@ -518,9 +518,9 @@ if "df" in st.session_state:
                             st.error(f"Something went wrong with Gemini: {e}")
 
 
-def generate_sql_from_gemini(user_query):
+def generate_gemini_sql(user_query):
     prompt = f"""
-You are an expert SQL generator.
+You are an expert SQL query generator.
 
 Here is the table schema:
 Table Name: products
@@ -533,9 +533,9 @@ Columns:
 
 Instructions:
 - ONLY generate a SQL query based on the user's request.
-- DO NOT solve manually, do not use any sample data.
-- Output must be only a valid SQL query.
-- No explanations, no calculations.
+- DO NOT solve manually.
+- DO NOT perform any calculations.
+- Just output a single valid SQL query based on the table.
 
 User request: {user_query}
 
@@ -547,6 +547,7 @@ SQL Query:
         return response.text
     except Exception as e:
         return f"Gemini LLM failed: {e}"
+
 
 
 # with right_col:
