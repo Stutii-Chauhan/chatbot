@@ -534,8 +534,9 @@ Columns:
 Instructions:
 - ONLY generate a SQL query based on the user's request.
 - DO NOT solve manually.
-- DO NOT perform any calculations.
-- Just output a single valid SQL query based on the table.
+- DO NOT perform any calculation.
+- Just output a valid SQL query.
+- No explanation. No reasoning steps.
 
 User request: {user_query}
 
@@ -547,8 +548,6 @@ SQL Query:
         return response.text
     except Exception as e:
         return f"Gemini LLM failed: {e}"
-
-
 
 # with right_col:
 #     if "df" in st.session_state:
