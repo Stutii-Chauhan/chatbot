@@ -1,2 +1,7 @@
 streamlit
-openai
+pandas
+openpyxl
+plotly
+scipy
+statsmodels
+google-generativeai==0.4.1
