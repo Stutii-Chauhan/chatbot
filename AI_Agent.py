@@ -37,6 +37,38 @@ def detect_datetime_columns(df):
             except:
                 continue
     return datetime_cols
+
+
+def generate_gemini_sql(user_query):
+    prompt = f"""
+You are an expert SQL query generator.
+
+Here is the table schema:
+Table Name: products
+Columns:
+- Sales (integer)
+- Quarter (text)
+- Vertical (text)
+- Region (text)
+- Profit (integer)
+
+Instructions:
+- ONLY generate a SQL query based on the user's request.
+- DO NOT solve manually.
+- DO NOT perform any calculation.
+- Just output a valid SQL query.
+- No explanation. No reasoning steps.
+
+User request: {user_query}
+
+SQL Query:
+"""
+
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Gemini LLM failed: {e}"
 	
 #Page name and layout
 
@@ -515,37 +547,6 @@ if "df" in st.session_state:
                         except Exception as e:
                             st.error(f"Something went wrong with Gemini: {e}")
 
-
-def generate_gemini_sql(user_query):
-    prompt = f"""
-You are an expert SQL query generator.
-
-Here is the table schema:
-Table Name: products
-Columns:
-- Sales (integer)
-- Quarter (text)
-- Vertical (text)
-- Region (text)
-- Profit (integer)
-
-Instructions:
-- ONLY generate a SQL query based on the user's request.
-- DO NOT solve manually.
-- DO NOT perform any calculation.
-- Just output a valid SQL query.
-- No explanation. No reasoning steps.
-
-User request: {user_query}
-
-SQL Query:
-"""
-
-    try:
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Gemini LLM failed: {e}"
 
 # with right_col:
 #     if "df" in st.session_state:
