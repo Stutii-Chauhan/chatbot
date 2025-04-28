@@ -518,11 +518,11 @@ if "df" in st.session_state:
                             st.error(f"Something went wrong with Gemini: {e}")
 
 
-def generate_gemini_insight(df_sample, chart_type, x_col=None, y_col=None):
+def generate_sql_from_gemini(user_query):
     prompt = f"""
 You are an expert SQL generator.
 
-Given the following table schema:
+Here is the table schema:
 Table Name: products
 Columns:
 - Sales (integer)
@@ -531,12 +531,17 @@ Columns:
 - Region (text)
 - Profit (integer)
 
-Generate a correct SQL query for the user's request.
-Do not explain anything. Just output the SQL query.
+Instructions:
+- ONLY generate a SQL query based on the user's request.
+- DO NOT solve manually, do not use any sample data.
+- Output must be only a valid SQL query.
+- No explanations, no calculations.
 
-Data Sample:
-{df_sample.to_csv(index=False)}
+User request: {user_query}
+
+SQL Query:
 """
+
     try:
         response = model.generate_content(prompt)
         return response.text
