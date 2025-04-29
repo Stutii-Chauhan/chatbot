@@ -5,3 +5,4 @@ plotly
 scipy
 statsmodels
 google-generativeai==0.4.1
+tabulate
