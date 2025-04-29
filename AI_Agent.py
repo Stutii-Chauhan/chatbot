@@ -143,28 +143,48 @@ if user_question:
 
                             # Generate simple summary if single-row two-column output
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
-                                label_col = result_df.columns[0]
-                                value_col = result_df.columns[1]
-                                label = result_df.iloc[0, 0]
-                                value = result_df.iloc[0, 1]
-                                if pd.notna(value):
-                                    summary = f"➡️ The {value_col} for {label_col} '{label}' is **{int(value):,}**."
-                                    st.markdown(summary)
-                                else:
-                                    st.info("No matching data found for this query.")
-
-                            # Intelligent summary for multi-row results
-                            elif result_df.shape[0] > 1:
+                            # --- Intelligent Summary Block ---
+                            if result_df.shape[0] > 0:
                                 try:
-                                    if 'Profit' in result_df.columns and 'Quarter' in result_df.columns and 'Region' in result_df.columns and 'Vertical' in result_df.columns:
-                                        max_row = result_df.loc[result_df['Profit'].idxmax()]
+                                    cols = result_df.columns.tolist()
+                            
+                                    if 'Profit' in cols:
+                                        # If Profit exists → give highest profit summary
+                                        if {'Vertical', 'Quarter', 'Region'}.issubset(cols):
+                                            max_row = result_df.loc[result_df['Profit'].idxmax()]
+                                            summary_text = (
+                                                f"💡 The highest profit for {max_row['Vertical']} was in **{max_row['Quarter']}**, "
+                                                f"**{max_row['Region']}** region with a profit of **{int(max_row['Profit']):,}**."
+                                            )
+                                            st.markdown(summary_text)
+                                        elif 'Region' in cols:
+                                            max_row = result_df.loc[result_df['Profit'].idxmax()]
+                                            summary_text = (
+                                                f"💡 The {max_row['Region']} region achieved the highest profit of **{int(max_row['Profit']):,}**."
+                                            )
+                                            st.markdown(summary_text)
+                            
+                                    elif 'Sales' in cols:
+                                        # If Sales exists → give highest sales summary
+                                        if 'Region' in cols:
+                                            max_row = result_df.loc[result_df['Sales'].idxmax()]
+                                            summary_text = (
+                                                f"💡 The {max_row['Region']} region had the highest sales of **{int(max_row['Sales']):,}**."
+                                            )
+                                            st.markdown(summary_text)
+                                    
+                                    elif 'AVG(Sales)' in cols:
+                                        # If average sales is given
+                                        avg_value = result_df.iloc[0, 0]
                                         summary_text = (
-                                            f"💡 The highest profit for {max_row['Vertical']} was in **{max_row['Quarter']}**, "
-                                            f"**{max_row['Region']}** region with a profit of **{int(max_row['Profit']):,}**."
+                                            f"💡 The average sales is approximately **{int(avg_value):,}**."
                                         )
                                         st.markdown(summary_text)
+                            
+                                    else:
+                                        st.info("No suitable columns found to generate a summary.")
                                 except Exception as e:
-                                    st.info(f"Could not generate summary insight: {e}")
+                                    st.info(f"Could not generate a summary insight: {e}")
 
                     except Exception as query_error:
                         st.error(f"SQL Execution Failed: {query_error}")
