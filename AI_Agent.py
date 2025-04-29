@@ -38,7 +38,7 @@ Instructions:
 - Treat all string comparisons as CASE-INSENSITIVE
 - Use UPPER(column) for text fields and compare with uppercase values.
 - Always return results with columns in the following order (if used): Quarter, Region, Vertical, Sales, Profit.
-- If the question is unclear, vague, or not related to this data (e.g. gibberish), respond with this: "Sorry, I didn't understand the question", in italics and green font color
+- If the user’s question is unrelated or unclear, reply with exactly: INVALID_QUERY (all caps, no markdown, no formatting).
 - No explanation. No reasoning steps.
 
 User request: {user_query}
@@ -93,6 +93,14 @@ if user_question:
         with st.spinner("Generating SQL Query..."):
             try:
                 sql_query = generate_gemini_sql(user_question)
+                clean_query = (
+                    sql_query.strip()
+                    .replace("```sql", "")
+                    .replace("```", "")
+                    .replace("_","")
+                    .strip()
+                    .lower()
+                )
     
                 # Handle if Gemini returns INVALID_QUERY
                 if sql_query.strip().lower().startswith("invalid_query"):
