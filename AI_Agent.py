@@ -143,18 +143,16 @@ if user_question:
     
                             # Generate simple summary if single-row two-column output
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
-                                label_col = result_df.columns[0]
-                                value_col = result_df.columns[1]
-                                label = result_df.iloc[0, 0]
-                                value = result_df.iloc[0, 1]
-    
-                                if pd.notna(value):
-                                    summary = f" The {value_col} for {label_col} '{label}' is **{int(value):,}**."
-                                    st.markdown(summary)
-                                else:
-                                    st.info("No matching data found for this query.")
-                    except Exception as query_error:
-                        st.error(f"SQL Execution Failed: {query_error}")
+                            if result_df.shape[0] > 1:
+                                try:
+                                    # Prioritize summary by 'Profit' if it's in columns
+                                    if 'Profit' in result_df.columns and 'Quarter' in result_df.columns and 'Region' in result_df.columns and 'Vertical' in result_df.columns:
+                                        max_row = result_df.loc[result_df['Profit'].idxmax()]
+                                        summary_text = (
+                                            f"💡 The highest profit for {max_row['Vertical']} was in **Q{max_row['Quarter']}**, "
+                                            f"**{max_row['Region']}** region with a profit of **{int(max_row['Profit']):,}**."
+                                        )
+                                        st.markdown(summary_text)
                     finally:
                         try:
                             conn.close()
