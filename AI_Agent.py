@@ -93,16 +93,26 @@ if user_question:
         with st.spinner("Generating SQL Query..."):
             try:
                 sql_query = generate_gemini_sql(user_question)
+        
+                # Handle if Gemini returns INVALID_QUERY
+                if sql_query.strip().lower() == "invalid_query":
+                    st.markdown(
+                        "<span style='color: green; font-style: italic;'>Sorry, I didn't understand the question.</span>",
+                        unsafe_allow_html=True
+                    )
+                    st.stop()
+        
+                # Show the generated SQL normally
                 st.code(sql_query, language='sql')
-
+        
                 # Ask if user wants to execute the generated query
                 execute_query = st.checkbox("Run this query on the database")
-
+        
                 if execute_query:
                     try:
                         # Clean up SQL query string
                         clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
-
+        
                         # Basic safety validation
                         if "select" not in clean_query.lower():
                             st.warning("That doesn't seem like a valid question. Please rephrase your question.")
@@ -112,16 +122,16 @@ if user_question:
                             result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
-
+        
                             # Generate simple summary if single-row two-column output
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
                                 label_col = result_df.columns[0]
                                 value_col = result_df.columns[1]
                                 label = result_df.iloc[0, 0]
                                 value = result_df.iloc[0, 1]
-
+        
                                 if pd.notna(value):
-                                    summary = f"The {value_col} for {label_col} '{label}' is **{int(value):,}**."
+                                    summary = f"➡️ The {value_col} for {label_col} '{label}' is **{int(value):,}**."
                                     st.markdown(summary)
                                 else:
                                     st.info("No matching data found for this query.")
