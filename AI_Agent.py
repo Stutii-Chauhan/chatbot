@@ -88,7 +88,7 @@ if user_question:
             st.success(f"Total missing values in the dataset: {total_missing}")
 
     else:
-        # 🚀 Use Gemini to generate SQL query
+        # Use Gemini to generate SQL query
         with st.spinner("Generating SQL Query..."):
             try:
                 sql_query = generate_gemini_sql(user_question)
@@ -104,6 +104,14 @@ if user_question:
                         result_df = pd.read_sql_query(clean_query, conn)
                         st.success("Query executed successfully!")
                         st.dataframe(result_df)
+                        if result_df.shape[0] == 1 and result_df.shape[1] == 2:
+                        label_col = result_df.columns[0]
+                        value_col = result_df.columns[1]
+                        value = result_df.iloc[0, 1]
+                        label = result_df.iloc[0, 0]
+                    
+                        summary = f"The {value_col} for {label_col} '{label}' is **{value:,}**."
+                        st.markdown(summary)
                     except Exception as query_error:
                         st.error(f"SQL Execution Failed: {query_error}")
                     conn.close()
