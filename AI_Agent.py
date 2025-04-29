@@ -152,25 +152,25 @@ if user_question:
                                         if {'Vertical', 'Quarter', 'Region'}.issubset(cols):
                                             max_row = result_df.loc[result_df['Profit'].idxmax()]
                                             st.markdown(
-                                                f"💡 The highest profit for {max_row['Vertical']} was in **{max_row['Quarter']}**, "
+                                                f" The highest profit for {max_row['Vertical']} was in **{max_row['Quarter']}**, "
                                                 f"**{max_row['Region']}** region with a profit of **{int(max_row['Profit']):,}**."
                                             )
                                         elif 'Region' in cols:
                                             max_row = result_df.loc[result_df['Profit'].idxmax()]
                                             st.markdown(
-                                                f"💡 The {max_row['Region']} region achieved the highest profit of **{int(max_row['Profit']):,}**."
+                                                f" The {max_row['Region']} region achieved the highest profit of **{int(max_row['Profit']):,}**."
                                             )
 
                                     elif 'Sales' in cols and 'Region' in cols:
                                         max_row = result_df.loc[result_df['Sales'].idxmax()]
                                         st.markdown(
-                                            f"💡 The {max_row['Region']} region had the highest sales of **{int(max_row['Sales']):,}**."
+                                            f" The {max_row['Region']} region had the highest sales of **{int(max_row['Sales']):,}**."
                                         )
 
                                     elif 'AVG(Sales)' in cols:
                                         avg_value = result_df.iloc[0, 0]
                                         st.markdown(
-                                            f"💡 The average sales is approximately **{int(avg_value):,}**."
+                                            f" The average sales is approximately **{int(avg_value):,}**."
                                         )
 
                                     else:
@@ -180,7 +180,7 @@ if user_question:
 Here is the output of the SQL query:
 {result_df.to_markdown(index=False)}
 
-Write one business-style sentence that directly answers the user's question based on this output."""
+Write one business-style sentence that directly answers the user's question based on this output. Be careful to match directionality (e.g. minimum vs maximum)"""
                                             llm_summary = query_gemini(llm_prompt)
                                             st.markdown(f"💬 {llm_summary}")
                                         else:
