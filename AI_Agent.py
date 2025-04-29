@@ -38,6 +38,7 @@ Instructions:
 - Treat all string comparisons as CASE-INSENSITIVE
 - Use UPPER(column) for text fields and compare with uppercase values.
 - Always return results with columns in the following order (if used): Quarter, Region, Vertical, Sales, Profit.
+- If the question is unclear, vague, or not related to this data (e.g. gibberish), respond with exactly this: "INVALID_QUERY".
 - No explanation. No reasoning steps.
 
 User request: {user_query}
