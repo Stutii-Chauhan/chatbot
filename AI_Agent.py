@@ -111,7 +111,7 @@ if user_question:
                             value = result_df.iloc[0, 1]
 
                             if pd.notna(value):
-                                summary = f"➡️ The {value_col} for {label_col} '{label}' is **{int(value):,}**."
+                                summary = f"The {value_col} for {label_col} '{label}' is **{int(value):,}**."
                                 st.markdown(summary)
                             else:
                                 st.info("No matching data found for this query.")
