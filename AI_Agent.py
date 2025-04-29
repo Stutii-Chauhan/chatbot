@@ -176,10 +176,11 @@ if user_question:
                                     else:
                                         # LLM fallback for small result sets
                                         if result_df.shape[0] <= 5 and result_df.shape[1] <= 3:
-                                            llm_prompt = f"""This is a table output from a SQL query:
+                                            llm_prompt = f"""User asked: "{user_question}"
+Here is the output of the SQL query:
 {result_df.to_markdown(index=False)}
 
-Write one short business-style sentence summarizing the main insight."""
+Write one business-style sentence that directly answers the user's question based on this output."""
                                             llm_summary = query_gemini(llm_prompt)
                                             st.markdown(f"💬 {llm_summary}")
                                         else:
