@@ -50,7 +50,7 @@ SQL Query:
 # ---- Streamlit App UI ----
 
 st.set_page_config(page_title="Data Analyzer", layout="wide")
-st.title("📊 Products Database Analyzer")
+st.title("Auto Agent")
 
 # 1. Connect to the SQLite database and load the products table
 conn = sqlite3.connect('mydatabase.db')
