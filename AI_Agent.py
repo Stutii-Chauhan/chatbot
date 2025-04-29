@@ -160,7 +160,7 @@ if user_question:
                                     if 'Profit' in result_df.columns and 'Quarter' in result_df.columns and 'Region' in result_df.columns and 'Vertical' in result_df.columns:
                                         max_row = result_df.loc[result_df['Profit'].idxmax()]
                                         summary_text = (
-                                            f"💡 The highest profit for {max_row['Vertical']} was in **Q{max_row['Quarter']}**, "
+                                            f"💡 The highest profit for {max_row['Vertical']} was in **{max_row['Quarter']}**, "
                                             f"**{max_row['Region']}** region with a profit of **{int(max_row['Profit']):,}**."
                                         )
                                         st.markdown(summary_text)
