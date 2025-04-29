@@ -103,7 +103,7 @@ if user_question:
                 )
     
                 # Handle if Gemini returns INVALID_QUERY
-                if clean_query == "invalid_query":
+                if sql_query.strip().lower().startswith("invalid_query"):
                     st.markdown(
                         """
                         <div style='
