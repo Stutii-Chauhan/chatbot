@@ -8,7 +8,7 @@ from scipy import stats
 
 # ---- Gemini setup ----
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-2.0-flash", generation_config={"temperature": 0.0})
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 def query_gemini(prompt):
     try:
