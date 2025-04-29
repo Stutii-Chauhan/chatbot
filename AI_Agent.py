@@ -39,6 +39,7 @@ Instructions:
 - Use UPPER(column) for text fields and compare with uppercase values.
 - Always return results with columns in the following order (if used): Quarter, Region, Vertical, Sales, Profit.
 - If the user’s question is unrelated or unclear, reply with exactly: INVALID_QUERY (all caps, no markdown, no formatting).
+- Assume all rows are from the same year. If 'year' is not present, ignore it.
 - No explanation. No reasoning steps.
 
 User request: {user_query}
