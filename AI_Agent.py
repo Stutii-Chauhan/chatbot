@@ -49,7 +49,7 @@ SQL Query:
 
 # ---- Streamlit App UI ----
 
-st.set_page_config(page_title="Data Analyzer", layout="wide")
+st.set_page_config(page_title="AI Agent", layout="wide")
 st.title("Auto Agent")
 
 # 1. Connect to the SQLite database and load the products table
