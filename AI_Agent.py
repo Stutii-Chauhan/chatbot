@@ -99,20 +99,19 @@ if user_question:
 
 
                 if execute_query:
-                    conn = sqlite3.connect('mydatabase.db')
                     try:
-                        # Clean up SQL from Gemini
+                        # Clean up SQL
                         clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
                 
-                        # Basic validation — avoid executing garbage queries
                         if "select" not in clean_query.lower():
                             st.warning("⚠️ That doesn't seem like a valid SQL query. Please rephrase your question.")
                         else:
+                            conn = sqlite3.connect('mydatabase.db')
                             result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
                 
-                            # Optional: Natural summary sentence for 1-row, 2-column results
+                            # Optional: Sentence summary for 1-row, 2-column outputs
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
                                 label_col = result_df.columns[0]
                                 value_col = result_df.columns[1]
@@ -124,7 +123,11 @@ if user_question:
                                     st.markdown(summary)
                                 else:
                                     st.info("No matching data found for this query.")
-                
                     except Exception as query_error:
                         st.error(f"SQL Execution Failed: {query_error}")
-                    conn.close()
+                    finally:
+                        try:
+                            conn.close()
+                        except:
+                            pass
+
