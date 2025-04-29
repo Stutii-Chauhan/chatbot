@@ -126,11 +126,12 @@ if user_question:
                 # Ask if user wants to execute the generated query
                 execute_query = st.checkbox("Run this query on the database")
     
+
                 if execute_query:
                     try:
                         # Clean up SQL query string
                         clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
-    
+                
                         # Basic safety validation
                         if "select" not in clean_query.lower():
                             st.warning("That doesn't seem like a valid question. Please rephrase your question.")
@@ -140,12 +141,22 @@ if user_question:
                             result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
-    
+                
                             # Generate simple summary if single-row two-column output
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
-                            if result_df.shape[0] > 1:
+                                label_col = result_df.columns[0]
+                                value_col = result_df.columns[1]
+                                label = result_df.iloc[0, 0]
+                                value = result_df.iloc[0, 1]
+                                if pd.notna(value):
+                                    summary = f"➡️ The {value_col} for {label_col} '{label}' is **{int(value):,}**."
+                                    st.markdown(summary)
+                                else:
+                                    st.info("No matching data found for this query.")
+                
+                            # Intelligent summary for multi-row results
+                            elif result_df.shape[0] > 1:
                                 try:
-                                    # Prioritize summary by 'Profit' if it's in columns
                                     if 'Profit' in result_df.columns and 'Quarter' in result_df.columns and 'Region' in result_df.columns and 'Vertical' in result_df.columns:
                                         max_row = result_df.loc[result_df['Profit'].idxmax()]
                                         summary_text = (
@@ -153,10 +164,16 @@ if user_question:
                                             f"**{max_row['Region']}** region with a profit of **{int(max_row['Profit']):,}**."
                                         )
                                         st.markdown(summary_text)
+                                except Exception as e:
+                                    st.info(f"Could not generate summary insight: {e}")
+                
+                    except Exception as query_error:
+                        st.error(f"SQL Execution Failed: {query_error}")
                     finally:
                         try:
                             conn.close()
                         except:
                             pass
+
             except Exception as e:
                 st.error(f"Something went wrong while generating the SQL: {e}")
