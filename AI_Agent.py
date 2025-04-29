@@ -97,7 +97,17 @@ if user_question:
                 # Handle if Gemini returns INVALID_QUERY
                 if sql_query.strip().lower() == "invalid_query":
                     st.markdown(
-                        "<span style='color: green; font-style: italic;'>Sorry, I didn't understand the question.</span>",
+                        """
+                        <div style='
+                            background-color: #e6f4ea;
+                            padding: 10px 15px;
+                            border-radius: 6px;
+                            font-style: italic;
+                            color: #1a7f37;
+                        '>
+                            Sorry, I didn't understand the question.
+                        </div>
+                        """,
                         unsafe_allow_html=True
                     )
                     st.stop()
