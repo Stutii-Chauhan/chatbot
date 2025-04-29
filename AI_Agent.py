@@ -105,13 +105,17 @@ if user_question:
                         st.success("Query executed successfully!")
                         st.dataframe(result_df)
                         if result_df.shape[0] == 1 and result_df.shape[1] == 2:
-                        label_col = result_df.columns[0]
-                        value_col = result_df.columns[1]
-                        value = result_df.iloc[0, 1]
-                        label = result_df.iloc[0, 0]
-                    
-                        summary = f"The {value_col} for {label_col} '{label}' is **{value:,}**."
-                        st.markdown(summary)
+                            label_col = result_df.columns[0]
+                            value_col = result_df.columns[1]
+                            label = result_df.iloc[0, 0]
+                            value = result_df.iloc[0, 1]
+
+                            if pd.notna(value):
+                                summary = f"➡️ The {value_col} for {label_col} '{label}' is **{int(value):,}**."
+                                st.markdown(summary)
+                            else:
+                                st.info("No matching data found for this query.")
+
                     except Exception as query_error:
                         st.error(f"SQL Execution Failed: {query_error}")
                     conn.close()
