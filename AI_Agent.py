@@ -97,28 +97,34 @@ if user_question:
                 # Optional: Execute the generated SQL query and show result
                 execute_query = st.checkbox("Run this query on the database")
 
+
                 if execute_query:
                     conn = sqlite3.connect('mydatabase.db')
                     try:
+                        # Clean up SQL from Gemini
                         clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
-                        result_df = pd.read_sql_query(clean_query, conn)
-                        st.success("Query executed successfully!")
-                        st.dataframe(result_df)
-                        if result_df.shape[0] == 1 and result_df.shape[1] == 2:
-                            label_col = result_df.columns[0]
-                            value_col = result_df.columns[1]
-                            label = result_df.iloc[0, 0]
-                            value = result_df.iloc[0, 1]
-
-                            if pd.notna(value):
-                                summary = f"The {value_col} for {label_col} '{label}' is **{int(value):,}**."
-                                st.markdown(summary)
-                            else:
-                                st.info("No matching data found for this query.")
-
+                
+                        # Basic validation — avoid executing garbage queries
+                        if "select" not in clean_query.lower():
+                            st.warning("⚠️ That doesn't seem like a valid SQL query. Please rephrase your question.")
+                        else:
+                            result_df = pd.read_sql_query(clean_query, conn)
+                            st.success("Query executed successfully!")
+                            st.dataframe(result_df)
+                
+                            # Optional: Natural summary sentence for 1-row, 2-column results
+                            if result_df.shape[0] == 1 and result_df.shape[1] == 2:
+                                label_col = result_df.columns[0]
+                                value_col = result_df.columns[1]
+                                label = result_df.iloc[0, 0]
+                                value = result_df.iloc[0, 1]
+                
+                                if pd.notna(value):
+                                    summary = f"➡️ The {value_col} for {label_col} '{label}' is **{int(value):,}**."
+                                    st.markdown(summary)
+                                else:
+                                    st.info("No matching data found for this query.")
+                
                     except Exception as query_error:
                         st.error(f"SQL Execution Failed: {query_error}")
                     conn.close()
-
-            except Exception as e:
-                st.error(f"Something went wrong with Gemini: {e}")
