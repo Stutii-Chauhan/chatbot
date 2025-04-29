@@ -174,6 +174,6 @@ if user_question:
                             conn.close()
                         except:
                             pass
-
-            except Exception as e:
-                st.error(f"Something went wrong while generating the SQL: {e}")
+                
+                except Exception as e:
+                    st.error(f"Something went wrong while generating the SQL: {e}")
