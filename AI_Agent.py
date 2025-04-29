@@ -35,6 +35,8 @@ Instructions:
 - DO NOT solve manually.
 - DO NOT perform any calculation.
 - Just output a valid SQL query.
+- Treat all string comparisons as CASE-INSENSITIVE
+- Use UPPER(column) for text fields and compare with uppercase values.
 - No explanation. No reasoning steps.
 
 User request: {user_query}
