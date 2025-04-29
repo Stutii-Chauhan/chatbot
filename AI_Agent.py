@@ -97,6 +97,7 @@ if user_question:
                 if execute_query:
                     conn = sqlite3.connect('mydatabase.db')
                     try:
+                        clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
                         result_df = pd.read_sql_query(sql_query, conn)
                         st.success("Query executed successfully!")
                         st.dataframe(result_df)
