@@ -89,7 +89,6 @@ if user_question:
             st.success(f"Total missing values in the dataset: {total_missing}")
 
     else:
-        # Use Gemini to generate SQL query
         with st.spinner("Generating SQL Query..."):
             try:
                 sql_query = generate_gemini_sql(user_question)
@@ -102,7 +101,6 @@ if user_question:
                     .lower()
                 )
 
-                # Handle if Gemini returns INVALID_QUERY
                 if sql_query.strip().lower().startswith("invalid_query"):
                     st.markdown(
                         """
@@ -120,28 +118,22 @@ if user_question:
                     )
                     st.stop()
 
-                # Show the generated SQL normally
                 st.code(sql_query, language='sql')
-
-                # Ask if user wants to execute the generated query
                 execute_query = st.checkbox("Run this query on the database")
 
                 if execute_query:
                     try:
-                        # Clean up SQL query string
                         clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
 
-                        # Basic safety validation
                         if "select" not in clean_query.lower():
                             st.warning("That doesn't seem like a valid question. Please rephrase your question.")
                         else:
-                            # Connect and execute
                             conn = sqlite3.connect('mydatabase.db')
                             result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
 
-                            # Generate simple summary
+                            # 1-row, 2-column summary
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
                                 label_col = result_df.columns[0]
                                 value_col = result_df.columns[1]
@@ -153,7 +145,7 @@ if user_question:
                                 else:
                                     st.info("No matching data found for this query.")
 
-                            # --- Intelligent Summary Block ---
+                            # Intelligent summaries
                             elif result_df.shape[0] > 0:
                                 try:
                                     cols = result_df.columns.tolist()
@@ -161,35 +153,39 @@ if user_question:
                                     if 'Profit' in cols:
                                         if {'Vertical', 'Quarter', 'Region'}.issubset(cols):
                                             max_row = result_df.loc[result_df['Profit'].idxmax()]
-                                            summary_text = (
+                                            st.markdown(
                                                 f"💡 The highest profit for {max_row['Vertical']} was in **{max_row['Quarter']}**, "
                                                 f"**{max_row['Region']}** region with a profit of **{int(max_row['Profit']):,}**."
                                             )
-                                            st.markdown(summary_text)
                                         elif 'Region' in cols:
                                             max_row = result_df.loc[result_df['Profit'].idxmax()]
-                                            summary_text = (
+                                            st.markdown(
                                                 f"💡 The {max_row['Region']} region achieved the highest profit of **{int(max_row['Profit']):,}**."
                                             )
-                                            st.markdown(summary_text)
 
-                                    elif 'Sales' in cols:
-                                        if 'Region' in cols:
-                                            max_row = result_df.loc[result_df['Sales'].idxmax()]
-                                            summary_text = (
-                                                f"💡 The {max_row['Region']} region had the highest sales of **{int(max_row['Sales']):,}**."
-                                            )
-                                            st.markdown(summary_text)
+                                    elif 'Sales' in cols and 'Region' in cols:
+                                        max_row = result_df.loc[result_df['Sales'].idxmax()]
+                                        st.markdown(
+                                            f"💡 The {max_row['Region']} region had the highest sales of **{int(max_row['Sales']):,}**."
+                                        )
 
                                     elif 'AVG(Sales)' in cols:
                                         avg_value = result_df.iloc[0, 0]
-                                        summary_text = (
+                                        st.markdown(
                                             f"💡 The average sales is approximately **{int(avg_value):,}**."
                                         )
-                                        st.markdown(summary_text)
 
                                     else:
-                                        st.info("No suitable columns found to generate a summary.")
+                                        # LLM fallback for small result sets
+                                        if result_df.shape[0] <= 5 and result_df.shape[1] <= 3:
+                                            llm_prompt = f"""This is a table output from a SQL query:
+{result_df.to_markdown(index=False)}
+
+Write one short business-style sentence summarizing the main insight."""
+                                            llm_summary = query_gemini(llm_prompt)
+                                            st.markdown(f"💬 {llm_summary}")
+                                        else:
+                                            st.info("No suitable columns found to generate a summary.")
 
                                 except Exception as e:
                                     st.info(f"Could not generate a summary insight: {e}")
