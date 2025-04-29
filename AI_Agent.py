@@ -180,7 +180,7 @@ if user_question:
 Here is the output of the SQL query:
 {result_df.to_markdown(index=False)}
 
-Write one business-style sentence that directly answers the user's question based on this output. Be careful to match directionality (e.g. minimum vs maximum)"""
+Write one concise, accurate business-style summary answering the question. Make sure to reflect correct directionality (minimum, maximum, etc.) and refer to the correct metric."""
                                             llm_summary = query_gemini(llm_prompt)
                                             st.markdown(f"💬 {llm_summary}")
                                         else:
