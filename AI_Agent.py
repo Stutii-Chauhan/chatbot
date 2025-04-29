@@ -97,11 +97,11 @@ if user_question:
                     sql_query.strip()
                     .replace("```sql", "")
                     .replace("```", "")
-                    .replace("_","")
+                    .replace("_", "")
                     .strip()
                     .lower()
                 )
-    
+
                 # Handle if Gemini returns INVALID_QUERY
                 if sql_query.strip().lower().startswith("invalid_query"):
                     st.markdown(
@@ -119,19 +119,18 @@ if user_question:
                         unsafe_allow_html=True
                     )
                     st.stop()
-    
+
                 # Show the generated SQL normally
                 st.code(sql_query, language='sql')
-    
+
                 # Ask if user wants to execute the generated query
                 execute_query = st.checkbox("Run this query on the database")
-    
 
                 if execute_query:
                     try:
                         # Clean up SQL query string
                         clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
-                
+
                         # Basic safety validation
                         if "select" not in clean_query.lower():
                             st.warning("That doesn't seem like a valid question. Please rephrase your question.")
@@ -141,7 +140,7 @@ if user_question:
                             result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
-                
+
                             # Generate simple summary if single-row two-column output
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
                                 label_col = result_df.columns[0]
@@ -153,7 +152,7 @@ if user_question:
                                     st.markdown(summary)
                                 else:
                                     st.info("No matching data found for this query.")
-                
+
                             # Intelligent summary for multi-row results
                             elif result_df.shape[0] > 1:
                                 try:
@@ -166,7 +165,7 @@ if user_question:
                                         st.markdown(summary_text)
                                 except Exception as e:
                                     st.info(f"Could not generate summary insight: {e}")
-                
+
                     except Exception as query_error:
                         st.error(f"SQL Execution Failed: {query_error}")
                     finally:
@@ -174,6 +173,6 @@ if user_question:
                             conn.close()
                         except:
                             pass
-                
-                except Exception as e:
-                    st.error(f"Something went wrong while generating the SQL: {e}")
+
+            except Exception as e:
+                st.error(f"Something went wrong while generating the SQL: {e}")
