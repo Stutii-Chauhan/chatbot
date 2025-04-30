@@ -8,7 +8,7 @@ from scipy import stats
 
 # ---- Gemini setup ----
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-2.0-flash", generation_config={"temperature": 0.0})
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 def query_gemini(prompt):
     try:
@@ -37,8 +37,8 @@ Instructions:
 - DO NOT explain the query or include any extra text.
 - Treat all string comparisons as CASE-INSENSITIVE using UPPER(column).
 - When comparing strings, convert both column and values to uppercase. Use UPPER(column) = 'VALUE'.
-- Use exact column names as defined: Sales, Quarter, Vertical, Region, Profit.
-- Enclose all column names in double quotes to preserve case-sensitivity for SQLite.
+# - Use exact column names as defined: Sales, Quarter, Vertical, Region, Profit.
+# - Enclose all column names in double quotes to preserve case-sensitivity for SQLite.
 - Always return results with columns in the following order if used: Quarter, Region, Vertical, Sales, Profit.
 - If the user’s question is unrelated or unclear, reply with exactly: INVALID_QUERY
 
