@@ -50,6 +50,23 @@ SQL Query:
     except Exception as e:
         return f"Gemini LLM failed: {e}"
 
+#Chart generator
+
+def get_chart_type_from_llm(user_query):
+    prompt = f"""
+- You are a data visualization expert. A user has asked a question about their dataset.
+- Based on the question, decide the most appropriate chart type to visualize the SQL query result.
+- Choose one of: bar, line, pie, scatter, heatmap, none
+- Only return the chart type in lowercase. No explanation, no formatting.
+
+Question: "{user_query}"
+"""
+    try:
+        response = model.generate_content(prompt).text.strip().lower()
+        return response if response in ['bar', 'line', 'pie', 'scatter', 'heatmap'] else 'none'
+    except Exception as e:
+        return "none"
+
 # ---- Streamlit App UI ----
 
 st.set_page_config(page_title="AI Agent", layout="wide")
@@ -91,6 +108,7 @@ if user_question:
         with st.spinner("Generating SQL Query..."):
             try:
                 sql_query = generate_gemini_sql(user_question)
+                chart_type = get_chart_type_from_llm(user_question)
                 clean_query = (
                     sql_query.strip()
                     .replace("```sql", "")
@@ -123,7 +141,7 @@ if user_question:
                 if execute_query:
                     try:
                         clean_query = sql_query.strip().strip("```").replace("sql", "").strip()
-
+                
                         if "select" not in clean_query.lower():
                             st.warning("That doesn't seem like a valid question. Please rephrase your question.")
                         else:
@@ -131,6 +149,27 @@ if user_question:
                             result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
+                
+                            # Auto Chart Rendering (based on Gemini-inferred chart_type)
+                            if chart_type != "none" and not result_df.empty:
+                                st.subheader("Chart Visualization")
+                
+                                try:
+                                    import plotly.express as px
+                                    if chart_type == "bar":
+                                        st.bar_chart(result_df.set_index(result_df.columns[0]))
+                                    elif chart_type == "line":
+                                        st.line_chart(result_df.set_index(result_df.columns[0]))
+                                    elif chart_type == "pie" and result_df.shape[1] >= 2:
+                                        fig = px.pie(result_df, names=result_df.columns[0], values=result_df.columns[1])
+                                        st.plotly_chart(fig)
+                                    elif chart_type == "scatter" and result_df.shape[1] >= 2:
+                                        fig = px.scatter(result_df, x=result_df.columns[0], y=result_df.columns[1])
+                                        st.plotly_chart(fig)
+                                    else:
+                                        st.info("Chart type suggested, but not enough data to render it.")
+                                except Exception as e:
+                                    st.warning(f"Chart rendering failed: {e}")
 
                             # 1-row, 2-column summary
                             if result_df.shape[0] == 1 and result_df.shape[1] == 2:
