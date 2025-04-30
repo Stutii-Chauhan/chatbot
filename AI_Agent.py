@@ -69,6 +69,21 @@ Question: "{user_query}"
     except Exception as e:
         return "none"
 
+##If a chart is needed 
+def should_include_chart(user_query):
+    prompt = f"""
+You are a helpful analytics assistant.
+
+Decide whether a chart would help explain this business question: "{user_query}"
+
+Answer with: yes or no. Do not explain.
+"""
+    try:
+        reply = model.generate_content(prompt).text.strip().lower()
+        return reply.startswith("y")
+    except:
+        return False
+
 # ---- Streamlit App UI ----
 
 st.set_page_config(page_title="AI Agent", layout="wide")
@@ -111,6 +126,11 @@ if user_question:
             try:
                 sql_query = generate_gemini_sql(user_question)
                 chart_type = get_chart_type_from_llm(user_question)
+                
+                # 🔁 If Gemini said no chart, but user question implies one is helpful, force it
+                if chart_type == "none" and should_include_chart(user_question):
+                    chart_type = "bar"
+                
                 clean_query = (
                     sql_query.strip()
                     .replace("```sql", "")
@@ -151,6 +171,18 @@ if user_question:
                             result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
+
+                            # Intelligent difference summary for 2-row comparisons
+                            if result_df.shape[0] == 2 and result_df.shape[1] == 2:
+                                try:
+                                    cat_col, val_col = result_df.columns[0], result_df.columns[1]
+                                    row1, row2 = result_df.iloc[0], result_df.iloc[1]
+                                    diff = abs(int(row1[1]) - int(row2[1]))
+                                    winner = row1 if row1[1] > row2[1] else row2
+                                    loser = row2 if winner.equals(row1) else row1
+                                    st.markdown(f"💬 **{val_col} in {winner[0]} ({int(winner[1]):,}) were greater than in {loser[0]} ({int(loser[1]):,}) by {diff:,}.**")
+                                except Exception as e:
+                                    st.info("Could not generate numeric insight.")
                 
                             # Auto Chart Rendering (based on Gemini-inferred chart_type)
                             if chart_type != "none" and not result_df.empty:
