@@ -37,7 +37,8 @@ Instructions:
 - DO NOT explain the query or include any extra text.
 - Treat all string comparisons as CASE-INSENSITIVE using UPPER(column).
 - When comparing strings, convert both column and values to uppercase. Use UPPER(column) = 'VALUE'.
-- Use exact column names as defined: lowercase (e.g., quarter, region, sales, profit, vertical).
+- Use exact column names as defined: Sales, Quarter, Vertical, Region, Profit.
+- Enclose all column names in double quotes to preserve case-sensitivity for SQLite.
 - Always return results with columns in the following order if used: Quarter, Region, Vertical, Sales, Profit.
 - If the user’s question is unrelated or unclear, reply with exactly: INVALID_QUERY
 
