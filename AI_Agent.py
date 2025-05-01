@@ -42,6 +42,9 @@ Instructions:
 - If the user asks for a comparison such as "which is greater" or "by how much", always return both individual values being compared (e.g., sales or profit in quarters), not just the difference.
 - Always return results with columns in the following order if used: Quarter, Region, Vertical, Sales, Profit.
 - If the user’s question is unrelated or unclear, reply with exactly: INVALID_QUERY
+- If the user asks for a pie chart or share/distribution/percentage by group, calculate each group's share out of the total using this logic:
+    (SUM(value) * 100.0) / (SELECT SUM(value) FROM table)
+- Example: For "percentage of sales by region", compute (SUM(Sales) * 100.0) / (SELECT SUM(Sales) FROM products)
 
 User request: {user_query}
 
