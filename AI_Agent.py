@@ -45,6 +45,7 @@ Instructions:
 - If the user asks for a pie chart or share/distribution/percentage by group, calculate each group's share out of the total using this logic:
     (SUM(value) * 100.0) / (SELECT SUM(value) FROM table)
 - Example: For "percentage of sales by region", compute (SUM(Sales) * 100.0) / (SELECT SUM(Sales) FROM products)
+- Always prioritize the keywords used by the user (e.g., profit vs sales). Do not assume.
 
 User request: {user_query}
 
