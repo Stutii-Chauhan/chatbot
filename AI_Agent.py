@@ -59,8 +59,15 @@ def get_chart_type_from_llm(user_query):
     prompt = f"""
 - You are a data visualization expert. A user has asked a question about their dataset.
 - Based on the question, decide the most appropriate chart type to visualize the SQL query result.
-- Choose one of: bar, line, pie, scatter, heatmap, none
-- Only return the chart type in lowercase. No explanation, no formatting.
+- Return only one chart type from this list: bar, line, pie, scatter, heatmap, none
+- Choose "bar" if comparing categories or groups (e.g., quarters, regions, verticals).
+- Choose "line" if showing trends over time (e.g., across quarters or years).
+- Choose "pie" if showing percentage composition (e.g., share of total).
+- Choose "scatter" if exploring relationship between two numeric variables.
+- Choose "heatmap" if it's a matrix-style comparison (e.g., profit by quarter and region).
+- Choose "none" if a chart would not add value or the result is a single value.
+- Display the numeric value on the graph also.
+- Do not explain your answer. Return only the chart type in lowercase.
 
 Question: "{user_query}"
 """
