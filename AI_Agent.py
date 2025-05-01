@@ -262,7 +262,7 @@ if user_question:
                                         This is the SQL query result:
                                         {preview}
                                         
-                                        Write a one-line, accurate business insight that answers the question. Reflect correct directionality (e.g. higher/lower, minimum/maximum), use actual numbers, and avoid vague language."""
+                                        Write a one-line, accurate business insight that answers the question. Reflect correct directionality (e.g. which has greater profit or greater sales), use actual numbers, and avoid vague language."""
                                                 llm_summary = query_gemini(llm_prompt)
                                                 st.markdown(f"💬 {llm_summary}")
                                             except Exception as e:
