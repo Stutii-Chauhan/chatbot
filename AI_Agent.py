@@ -90,9 +90,14 @@ st.set_page_config(page_title="AI Agent", layout="wide")
 st.title("Auto Agent")
 
 # 1. Connect to the SQLite database and load the products table
-conn = sqlite3.connect('mydatabase.db')
-df = pd.read_sql_query("SELECT * FROM products", conn)
-conn.close()
+@st.cache_data
+def load_data():
+    conn = sqlite3.connect('mydatabase.db')
+    df = pd.read_sql_query("SELECT * FROM products", conn)
+    conn.close()
+    return df
+
+df = load_data()
 
 # 2. Show data preview
 st.subheader("Data Preview")
@@ -250,15 +255,24 @@ if user_question:
                                     else:
                                         # LLM fallback for small result sets
                                         if result_df.shape[0] <= 5 and result_df.shape[1] <= 3:
-                                            llm_prompt = f"""User asked: "{user_question}"
-Here is the output of the SQL query:
-{result_df.to_markdown(index=False)}
-
-Write one concise, accurate business-style summary answering the question. Make sure to reflect correct directionality (minimum, maximum, etc.) and refer to the correct metric. Check twice before giving out the insight."""
-                                            llm_summary = query_gemini(llm_prompt)
-                                            st.markdown(f"💬 {llm_summary}")
+                                            try:
+                                                preview = result_df.to_markdown(index=False)
+                                                llm_prompt = f"""User asked: "{user_question}"
+                                        
+                                        This is the SQL query result:
+                                        {preview}
+                                        
+                                        Write a one-line, accurate business insight that answers the question. Reflect correct directionality (e.g. higher/lower, minimum/maximum), use actual numbers, and avoid vague language."""
+                                                llm_summary = query_gemini(llm_prompt)
+                                                st.markdown(f"💬 {llm_summary}")
+                                            except Exception as e:
+                                                st.info(f"Could not generate a summary insight: {e}")
+                                        
+                                        elif result_df.shape[0] > 100:
+                                            st.info("Too many rows to summarize meaningfully. Please filter your query.")
                                         else:
                                             st.info("No suitable columns found to generate a summary.")
+
 
                                 except Exception as e:
                                     st.info(f"Could not generate a summary insight: {e}")
