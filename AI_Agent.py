@@ -39,6 +39,7 @@ Instructions:
 - When comparing strings, convert both column and values to uppercase. Use UPPER(column) = 'VALUE'.
 # - Use exact column names as defined: Sales, Quarter, Vertical, Region, Profit.
 # - Enclose all column names in double quotes to preserve case-sensitivity for SQLite.
+- If the user asks for a comparison such as "which is greater" or "by how much", always return both individual values being compared (e.g., sales or profit in quarters), not just the difference.
 - Always return results with columns in the following order if used: Quarter, Region, Vertical, Sales, Profit.
 - If the user’s question is unrelated or unclear, reply with exactly: INVALID_QUERY
 
