@@ -261,6 +261,12 @@ if user_question:
                                         
                                         This is the SQL query result:
                                         {preview}
+                                        Instructions:
+- If the result only contains a difference, do not assume directionality. Avoid guessing which is higher unless both original values are present.
+- If both values are available, identify which is greater, by how much, and mention it clearly with both numbers.
+- Use actual numbers in the output. Be concise, correct, and do not speculate.
+- Return only a one-line insight.
+                                        
                                         
                                         Write a one-line, accurate business insight that answers the question. Reflect correct directionality (e.g. which has greater profit or greater sales), use actual numbers, and avoid vague language."""
                                                 llm_summary = query_gemini(llm_prompt)
