@@ -103,9 +103,17 @@ st.title("Auto Agent")
 # 1. Connect to the SQLite database and load the products table
 @st.cache_data
 def load_data():
-    conn = sqlite3.connect('mydatabase.db')
-    df = pd.read_sql_query("SELECT * FROM products", conn)
-    conn.close()
+    # Load secrets (already defined in your secrets.toml)
+    DB = st.secrets["SUPABASE_DB"]
+    USER = st.secrets["SUPABASE_USER"]
+    PASSWORD = st.secrets["SUPABASE_PASSWORD"]
+    HOST = st.secrets["SUPABASE_HOST"]
+    PORT = st.secrets["SUPABASE_PORT"]
+    
+    # SQLAlchemy engine for Supabase
+    engine = create_engine(f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}")
+    df = pd.read_sql_query("SELECT * FROM products", engine)
+    engine.close()
     return df
 
 df = load_data()
@@ -183,8 +191,8 @@ if user_question:
                         if "select" not in clean_query.lower():
                             st.warning("That doesn't seem like a valid question. Please rephrase your question.")
                         else:
-                            conn = sqlite3.connect('mydatabase.db')
-                            result_df = pd.read_sql_query(clean_query, conn)
+                            #conn = sqlite3.connect('mydatabase.db')
+                            result_df = pd.read_sql_query(clean_query, engine)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
 
@@ -298,7 +306,7 @@ if user_question:
                         st.error(f"SQL Execution Failed: {query_error}")
                     finally:
                         try:
-                            conn.close()
+                            engine.close()
                         except:
                             pass
 
