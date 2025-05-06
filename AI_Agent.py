@@ -18,48 +18,42 @@ def query_gemini(prompt):
         return f"Gemini LLM failed: {e}"
 
 def generate_gemini_sql(user_query):
-    TABLE_SCHEMAS = {
-        "product_price_cleaned_output": ["product_url", "product_name", "product_price", "product_code", "brand"],
-        "All - Product Count_output": ["brand", "10k–15k", "15k–25k", "25k–40k", "40k+", "<10k"],
-        "All - SKU Count_output": ["brand", "10k–15k", "15k–25k", "25k–40k", "40k+", "<10k"],
-        "Top 1000 - Product Count_output": ["brand", "Top 1000 Product Count"],
-        "Top 1000 - SKU Count_output": ["brand", "Top 1000 SKU Count"],
-        "Men - Product Count_output": ["brand", "Men - Product Count"],
-        "Men - SKU Count_output": ["brand", "Men - SKU Count"],
-        "Women - Product Count_output": ["brand", "Women - Product Count"],
-        "Women - SKU Count_output": ["brand", "Women - SKU Count"],
-        "Best Rank_All_output": ["brand", "Best Rank (First Appearance)"],
-        "men_price_range_top100_output": ["brand", "10k–15k", "15k–25k", "25k–40k", "40k+", "total"],
-        "women_price_range_top100_output": ["brand", "10k–15k", "15k–25k", "25k–40k", "40k+", "total"],
-        "Final_Watch_Dataset_Men_output": ["URL", "Brand", "Product Name", "Model Number", "Price", "Ratings", "Discount", "Band Colour", "Band Material", "Band Width", "Case Diameter", "Case Material", "Case Thickness", "Dial Colour", "Crystal Material", "Case Shape", "Movement", "Water Resistance Depth", "Special Features", "ImageURL"],
-        "Final_Watch_Dataset_Women_output": ["URL", "Brand", "Product Name", "Model Number", "Price", "Ratings", "Discount", "Band Colour", "Band Material", "Band Width", "Case Diameter", "Case Material", "Case Thickness", "Dial Colour", "Crystal Material", "Case Shape", "Movement", "Water Resistance Depth", "Special Features", "ImageURL"]
-    }
-
-    schema_text = "\n".join([
-        f"- {table}: columns = [{', '.join(columns)}]"
-        for table, columns in TABLE_SCHEMAS.items()
-    ])
-
     prompt = f"""
-You are an expert SQL generator.
+You are an expert SQL query generator.
 
-Below are the available tables and their exact column names:
-{schema_text}
+Here is the table schema:
+Table Name: products
+Columns:
+- Sales (integer)
+- Quarter (text)
+- Vertical (text)
+- Region (text)
+- Profit (integer)
 
 Instructions:
-- Select the most appropriate table for the user’s question.
-- ONLY use the columns exactly as written for the selected table.
-- DO NOT add or assume extra columns or values.
-- DO NOT explain the query — just return raw SQL.
-- If the question doesn’t map to any table, return exactly: INVALID_QUERY
+- ONLY generate a SQL query based on the user's request.
+- You ARE allowed to use arithmetic in SQL (e.g., SUM(Profit) / SUM(Sales) * 100).
+- DO NOT compute the answer yourself. Just generate SQL.
+- DO NOT explain the query or include any extra text.
+- Treat all string comparisons as CASE-INSENSITIVE using UPPER(column).
+- When comparing strings, convert both column and values to uppercase. Use UPPER(column) = 'VALUE'.
+# - Use exact column names as defined: Sales, Quarter, Vertical, Region, Profit.
+# - Enclose all column names in double quotes to preserve case-sensitivity for SQLite.
+- If the user asks for a comparison such as "which is greater" or "by how much", always return both individual values being compared (e.g., sales or profit in quarters), not just the difference.
+- Always return results with columns in the following order if used: Quarter, Region, Vertical, Sales, Profit.
+- If the user’s question is unrelated or unclear, reply with exactly: INVALID_QUERY
+- If the user asks for a pie chart or share/distribution/percentage by group, calculate each group's share out of the total using this logic:
+    (SUM(value) * 100.0) / (SELECT SUM(value) FROM table)
+- Example: For "percentage of sales by region", compute (SUM(Sales) * 100.0) / (SELECT SUM(Sales) FROM products)
+- Always prioritize the keywords used by the user (e.g., profit vs sales). Do not assume.
 
-User question: {user_query}
+User request: {user_query}
 
 SQL Query:
 """
     try:
         response = model.generate_content(prompt)
-        return response.text.strip()
+        return response.text
     except Exception as e:
         return f"Gemini LLM failed: {e}"
 
@@ -103,17 +97,9 @@ st.title("Auto Agent")
 # 1. Connect to the SQLite database and load the products table
 @st.cache_data
 def load_data():
-    # Load secrets (already defined in your secrets.toml)
-    DB = st.secrets["SUPABASE_DB"]
-    USER = st.secrets["SUPABASE_USER"]
-    PASSWORD = st.secrets["SUPABASE_PASSWORD"]
-    HOST = st.secrets["SUPABASE_HOST"]
-    PORT = st.secrets["SUPABASE_PORT"]
-    
-    # SQLAlchemy engine for Supabase
-    engine = create_engine(f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}")
-    df = pd.read_sql_query("SELECT * FROM products", engine)
-    engine.close()
+    conn = sqlite3.connect('mydatabase.db')
+    df = pd.read_sql_query("SELECT * FROM products", conn)
+    conn.close()
     return df
 
 df = load_data()
@@ -191,8 +177,8 @@ if user_question:
                         if "select" not in clean_query.lower():
                             st.warning("That doesn't seem like a valid question. Please rephrase your question.")
                         else:
-                            #conn = sqlite3.connect('mydatabase.db')
-                            result_df = pd.read_sql_query(clean_query, engine)
+                            conn = sqlite3.connect('mydatabase.db')
+                            result_df = pd.read_sql_query(clean_query, conn)
                             st.success("Query executed successfully!")
                             st.dataframe(result_df)
 
@@ -306,7 +292,7 @@ if user_question:
                         st.error(f"SQL Execution Failed: {query_error}")
                     finally:
                         try:
-                            engine.close()
+                            conn.close()
                         except:
                             pass
 
